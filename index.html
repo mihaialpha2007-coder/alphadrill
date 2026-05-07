@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ALPHADRILL – Proiecte</title>
+
+<!-- Firebase SDK v9 compat (sincronizare real-time) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --bg:      #071829;
+  --bg2:     #0a1f35;
+  --bg3:     #0e2a47;
+  --border:  #1a3f66;
+  --border2: #224f82;
+  --accent:  #4da6ff;
+  --accent2: #1e6fcf;
+  --text:    #e8f4ff;
+  --text2:   #7fb3d3;
+  --text3:   #4a7a9c;
+  --green:   #4caf50;
+  --orange:  #ff9800;
+  --red:     #ef5350;
+  --purple:  #ab47bc;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  min-height: 100vh;
+  font-size: 15px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================
+   HEADER
+   ============================ */
+.header {
+  background: #040e1a;
+  padding: 13px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+}
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.app-sub {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 1px;
+  font-weight: 500;
+}
+.sync-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 0.72rem;
+  color: var(--text2);
+  font-weight: 600;
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.sync-dot.syncing {
+  background: var(--orange);
+  animation: blink 1s infinite;
+}
+.sync-dot.offline { background: var(--red); }
+.sync-dot.local   { background: var(--text3); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ============================
+   TABS
+   ============================ */
+.tabs-wrap {
+  background: #040e1a;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: 57px;
+  z-index: 100;
+}
+.tabs-wrap::-webkit-scrollbar { display: none; }
+.tabs {
+  display: flex;
+  min-width: max-content;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 13px 20px;
+  cursor: pointer;
+  color: var(--text3);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.07em;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  transition: all 0.18s;
+  user-select: none;
+}
+.tab:hover { color: var(--text); background: rgba(77,166,255,0.04); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: rgba(77,166,255,0.05);
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: var(--bg3);
+  color: var(--text2);
+  min-width: 22px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.tab.active .badge { background: var(--accent2); color: #fff; }
+/* Individual tab badge colours */
+[data-s="ofertare"]    .badge { border: 1px solid #1a5a99; }
+[data-s="planificare"] .badge { border: 1px solid #6a1fb5; }
+[data-s="pending"]     .badge { border: 1px solid #b34700; }
+[data-s="finalizat"]   .badge { border: 1px solid #2a6a2a; }
+[data-s="refuzat"]     .badge { border: 1px solid #8a1a1a; }
+
+/* ============================
+   CONTENT
+   ============================ */
+.content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 22px 18px;
+}
+.section { display: none; }
+.section.active { display: block; }
+
+.sec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+.sec-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sec-count {
+  font-size: 0.78rem;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+.btn-add {
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.18s, transform 0.1s;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.btn-add:hover { background: var(--accent); }
+.btn-add:active { transform: scale(0.97); }
+
+/* ============================
+   CARDS
+   ============================ */
+.cards-grid { display: grid; gap: 14px; }
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 17px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--card-accent, var(--border2));
+  border-radius: 14px 0 0 14px;
+}
+.section#sec-ofertare    .card::before { background: #1e6fcf; }
+.section#sec-planificare .card::before { background: #7b1fa2; }
+.section#sec-pending     .card::before { background: #e65100; }
+.section#sec-finalizat   .card::before { background: #2e7d32; }
+.section#sec-refuzat     .card::before { background: #c62828; }
+.card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.4);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 11px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.card-left {}
+.card-name {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.3;
+}
+.card-bene {
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.card-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.card-date {
+  font-size: 0.75rem;
+  color: var(--text3);
+  font-weight: 600;
+}
+.sbadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 5px;
+  letter-spacing: 0.03em;
+}
+.s-nou       { background: rgba(77,166,255,0.15);  color: #7ec8ff; }
+.s-contactat { background: rgba(171,71,188,0.15);  color: #d899e8; }
+.s-negociere { background: rgba(255,152,0,0.15);   color: #ffbd59; }
+.s-confirmat { background: rgba(76,175,80,0.15);   color: #82d985; }
+.s-asteptare { background: rgba(158,158,158,0.15); color: #b0b0b0; }
+.s-default   { background: rgba(100,140,170,0.15); color: #90c0dd; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 6px 14px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 9px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.cfield {}
+.cfield-lbl {
+  font-size: 0.67rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.cfield-val {
+  font-size: 0.83rem;
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-word;
+}
+.cfield-val.money { color: #7de087; font-weight: 800; font-size: 0.88rem; }
+
+.card-desc {
+  font-size: 0.81rem;
+  color: var(--text2);
+  line-height: 1.55;
+  margin-bottom: 9px;
+  padding: 0 3px;
+}
+.card-obs {
+  font-size: 0.77rem;
+  color: var(--text3);
+  font-style: italic;
+  margin-bottom: 11px;
+  padding: 6px 10px;
+  border-left: 2px solid var(--border2);
+  background: rgba(0,0,0,0.12);
+  border-radius: 0 6px 6px 0;
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.bsm {
+  padding: 6px 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.77rem;
+  font-weight: 700;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid transparent;
+}
+.bsm:active { transform: scale(0.95); }
+.bsm-edit { background: rgba(77,166,255,0.1); color: #7ec8ff; border-color: rgba(77,166,255,0.25); }
+.bsm-edit:hover { background: rgba(77,166,255,0.2); }
+.bsm-move { background: rgba(76,175,80,0.1); color: #82d985; border-color: rgba(76,175,80,0.22); }
+.bsm-move:hover { background: rgba(76,175,80,0.2); }
+.bsm-del  { background: rgba(239,83,80,0.1); color: #ef9a9a; border-color: rgba(239,83,80,0.22); }
+.bsm-del:hover { background: rgba(239,83,80,0.2); }
+
+/* ============================
+   PRIORITY FLAG
+   ============================ */
+.pflag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 7px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  border: 1px solid transparent;
+}
+/* Normal */
+.pf-normal  { background: rgba(100,160,100,0.12); color: #7fd87f; border-color: rgba(100,200,100,0.2); }
+/* Ridicat */
+.pf-ridicat { background: rgba(100,160,255,0.13); color: #7ec0ff; border-color: rgba(100,180,255,0.25); }
+/* Urgent */
+.pf-urgent  { background: rgba(255,160,0,0.14);   color: #ffbe4d; border-color: rgba(255,170,0,0.3);
+              animation: urgentGlow 2.5s ease-in-out infinite; }
+/* Critic */
+.pf-critic  { background: rgba(239,60,60,0.16);   color: #ff7070; border-color: rgba(239,80,80,0.35);
+              animation: criticGlow 1.6s ease-in-out infinite; }
+
+@keyframes urgentGlow {
+  0%,100% { box-shadow: 0 0 0px rgba(255,160,0,0); }
+  50%      { box-shadow: 0 0 8px rgba(255,160,0,0.45); }
+}
+@keyframes criticGlow {
+  0%,100% { box-shadow: 0 0 0px rgba(239,60,60,0); }
+  50%      { box-shadow: 0 0 10px rgba(239,60,60,0.55); }
+}
+
+/* Card border overrides for Urgent / Critic */
+.card.prio-urgent { border-color: rgba(255,160,0,0.4); }
+.card.prio-critic { border-color: rgba(239,80,80,0.5); }
+.card.prio-urgent::before { background: #e65100 !important; }
+.card.prio-critic::before { background: #c62828 !important; }
+
+/* ============================
+   EMPTY STATE
+   ============================ */
+.empty {
+  text-align: center;
+  padding: 55px 20px;
+  color: var(--text3);
+}
+.empty-icon { font-size: 3.2rem; margin-bottom: 10px; display: block; }
+.empty-msg  { font-size: 0.92rem; font-weight: 500; }
+
+/* ============================
+   MODAL
+   ============================ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,8,18,0.88);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  backdrop-filter: blur(4px);
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 93vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 24px 72px rgba(0,0,0,0.65);
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity:0 } to { transform: translateY(0); opacity:1 } }
+.modal::-webkit-scrollbar { width: 4px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.mhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.mtitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+.mbtn-close {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 1.3rem;
+  padding: 5px 7px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.mbtn-close:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+.fgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.fg { display: flex; flex-direction: column; gap: 5px; }
+.fg.full { grid-column: 1 / -1; }
+
+.flabel {
+  font-size: 0.71rem;
+  font-weight: 800;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.finput {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  -webkit-appearance: none;
+  font-family: inherit;
+}
+.finput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(77,166,255,0.12);
+}
+.finput option { background: #0a1f35; color: var(--text); }
+select.finput { cursor: pointer; }
+textarea.finput { resize: vertical; min-height: 75px; }
+
+.mfoot {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.btn-save {
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  padding: 10px 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.88rem;
+  transition: background 0.18s;
+}
+.btn-save:hover { background: var(--accent); }
+.btn-cancel {
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.88rem;
+  transition: all 0.18s;
+}
+.btn-cancel:hover { border-color: var(--border2); color: var(--text); }
+
+/* ============================
+   MOVE MODAL
+   ============================ */
+.move-note {
+  font-size: 0.82rem;
+  color: var(--text2);
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  line-height: 1.5;
+}
+.mgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mbtn {
+  padding: 14px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.83rem;
+  text-align: center;
+  transition: all 0.18s;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.mbtn:hover { border-color: var(--accent); background: var(--bg3); transform: translateY(-1px); }
+.mbtn.m-ofertare:hover    { border-color: #3d8fd6; background: rgba(30,111,207,0.12); }
+.mbtn.m-planificare:hover { border-color: #ab47bc; background: rgba(171,71,188,0.12); }
+.mbtn.m-pending:hover     { border-color: #ff9800; background: rgba(255,152,0,0.12); }
+.mbtn.m-finalizat:hover   { border-color: #4caf50; background: rgba(76,175,80,0.12); }
+.mbtn.m-refuzat:hover     { border-color: #ef5350; background: rgba(239,83,80,0.12); }
+
+/* ============================
+   TOAST
+   ============================ */
+.toast {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg3);
+  color: var(--text);
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  z-index: 9999;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  border: 1px solid var(--border2);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok  { border-left: 4px solid var(--green); }
+.toast.err { border-left: 4px solid var(--red); }
+
+/* ============================
+   SETUP BANNER
+   ============================ */
+.setup-banner {
+  background: rgba(255,152,0,0.08);
+  border: 1px solid rgba(255,152,0,0.3);
+  border-radius: 10px;
+  padding: 13px 16px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  color: #ffc570;
+  line-height: 1.6;
+}
+.setup-banner strong { color: #ffd080; }
+.setup-banner code {
+  background: rgba(0,0,0,0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #ffe0a0;
+}
+
+/* ============================
+   FILTER BAR
+   ============================ */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  align-items: center;
+  padding: 12px 14px;
+  background: rgba(0,0,0,0.18);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.filter-label {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  margin-right: 2px;
+}
+.fchip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.15s;
+  white-space: nowrap;
+  user-select: none;
+}
+.fchip:hover { border-color: var(--border2); color: var(--text); }
+.fchip.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+.fchip.fc-critic.active  { background: rgba(239,60,60,0.7);  border-color: #ef3c3c; color:#fff; }
+.fchip.fc-urgent.active  { background: rgba(230,110,0,0.7);  border-color: #e66a00; color:#fff; }
+.fchip.fc-ridicat.active { background: rgba(30,111,207,0.7); border-color: #1e6fcf; color:#fff; }
+.fchip.fc-normal.active  { background: rgba(46,125,50,0.7);  border-color: #2e7d32; color:#fff; }
+
+.fsep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; margin: 0 4px; }
+
+.fsearch {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.18s;
+  font-family: inherit;
+}
+.fsearch:focus { border-color: var(--accent); }
+.fsearch::placeholder { color: var(--text3); }
+
+/* ============================
+   RESPONSIVE
+   ============================ */
+@media (max-width: 540px) {
+  .fgrid   { grid-template-columns: 1fr; }
+  .mgrid   { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+  .content { padding: 14px 12px; }
+  .tab     { padding: 12px 14px; font-size: 0.76rem; }
+  .modal   { padding: 16px; border-radius: 14px; }
+  .card    { padding: 14px; }
+  .card-actions { justify-content: flex-start; }
+}
+@media (min-width: 700px) {
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1000px) {
+  .cards-grid { grid-template-columns: 1fr 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <div class="app-logo">
+    <div>
+      <div class="app-title">🔩 ALPHADRILL</div>
+      <div class="app-sub">Management Proiecte</div>
+    </div>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px">
+    <div class="sync-pill">
+      <div class="sync-dot local" id="syncDot"></div>
+      <span id="syncLabel">Local</span>
+    </div>
+    <button onclick="resetSetup()" title="Resetează configurare Firebase" style="background:none;border:1px solid var(--border);color:var(--text3);border-radius:20px;padding:5px 10px;cursor:pointer;font-size:0.7rem;font-weight:700">⚙️</button>
+  </div>
+</div>
+
+<!-- ==================== TABS ==================== -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <div class="tab active" data-s="ofertare"    onclick="goTab('ofertare')">
+      📋 OFERTARE    <span class="badge" id="cnt-ofertare">0</span>
+    </div>
+    <div class="tab" data-s="planificare" onclick="goTab('planificare')">
+      📅 PLANIFICARE <span class="badge" id="cnt-planificare">0</span>
+    </div>
+    <div class="tab" data-s="pending"    onclick="goTab('pending')">
+      ⏳ PENDING     <span class="badge" id="cnt-pending">0</span>
+    </div>
+    <div class="tab" data-s="finalizat"  onclick="goTab('finalizat')">
+      ✅ FINALIZAT   <span class="badge" id="cnt-finalizat">0</span>
+    </div>
+    <div class="tab" data-s="refuzat"    onclick="goTab('refuzat')">
+      ❌ REFUZAT     <span class="badge" id="cnt-refuzat">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONTENT ==================== -->
+<div class="content">
+
+  <!-- OFERTARE -->
+  <div class="section active" id="sec-ofertare">
+    <div id="firebaseBanner" class="setup-banner" style="display:none">
+      🔥 <strong>Firebase neconfigurat</strong> — datele se salvează local (doar pe acest dispozitiv).
+      Deschideți fișierul, căutați <code>FIREBASE_CONFIG</code> și înlocuiți cu datele din
+      <strong>console.firebase.google.com</strong> pentru sincronizare pe toate dispozitivele.
+    </div>
+    <div class="sec-header">
+      <div>
+        <div class="sec-title">📋 Ofertare</div>
+        <div class="sec-count" id="sec-count-ofertare"></div>
+      </div>
+      <button class="btn-add" onclick="openAdd()">+ Adaugă Ofertă</button>
+    </div>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Filtre:</span>
+      <input class="fsearch" type="text" id="searchInput" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic')"  id="fc-critic">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent')"  id="fc-urgent">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat')" id="fc-ridicat">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal')"  id="fc-normal">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters()" id="fc-clear" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-ofertare"></div>
+  </div>
+
+  <!-- PLANIFICARE -->
+  <div class="section" id="sec-planificare">
+    <div class="sec-header">
+      <div class="sec-title">📅 Planificare</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-planificare" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','planificare')"  id="fc-critic-planificare">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','planificare')"  id="fc-urgent-planificare">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','planificare')" id="fc-ridicat-planificare">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','planificare')"  id="fc-normal-planificare">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('planificare')" id="fc-clear-planificare" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-planificare"></div>
+  </div>
+
+  <!-- PENDING -->
+  <div class="section" id="sec-pending">
+    <div class="sec-header">
+      <div class="sec-title">⏳ Pending</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-pending" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','pending')"  id="fc-critic-pending">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','pending')"  id="fc-urgent-pending">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','pending')" id="fc-ridicat-pending">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','pending')"  id="fc-normal-pending">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('pending')" id="fc-clear-pending" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-pending"></div>
+  </div>
+
+  <!-- FINALIZAT -->
+  <div class="section" id="sec-finalizat">
+    <div class="sec-header">
+      <div class="sec-title">✅ Finalizat</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-finalizat" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','finalizat')"  id="fc-critic-finalizat">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','finalizat')"  id="fc-urgent-finalizat">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','finalizat')" id="fc-ridicat-finalizat">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','finalizat')"  id="fc-normal-finalizat">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('finalizat')" id="fc-clear-finalizat" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-finalizat"></div>
+  </div>
+
+  <!-- REFUZAT -->
+  <div class="section" id="sec-refuzat">
+    <div class="sec-header">
+      <div class="sec-title">❌ Refuzat</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-refuzat" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','refuzat')"  id="fc-critic-refuzat">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','refuzat')"  id="fc-urgent-refuzat">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','refuzat')" id="fc-ridicat-refuzat">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','refuzat')"  id="fc-normal-refuzat">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('refuzat')" id="fc-clear-refuzat" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-refuzat"></div>
+  </div>
+
+</div><!-- /content -->
+
+
+<!-- ==================== FORM MODAL ==================== -->
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle" id="mTitle">Adaugă Ofertă Nouă</span>
+      <button class="mbtn-close" onclick="closeOverlay('formOverlay')">✕</button>
+    </div>
+    <form id="entryForm" onsubmit="saveEntry(event)">
+      <div class="fgrid">
+
+        <div class="fg">
+          <label class="flabel">📅 Data</label>
+          <input type="date" class="finput" id="f-data">
+        </div>
+
+        <div class="fg">
+          <label class="flabel">🔖 Status</label>
+          <select class="finput" id="f-status">
+            <option value="Nou">Nou</option>
+            <option value="Contactat">Contactat</option>
+            <option value="Negociere">Negociere</option>
+            <option value="Confirmat">Confirmat</option>
+            <option value="În așteptare">În așteptare</option>
+          </select>
+        </div>
+
+        <div class="fg full">
+          <label class="flabel">🚦 Urgență / Prioritate</label>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:2px;" id="prioGroup">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg);flex:1;min-width:110px;transition:all .15s" class="prio-opt" data-val="Normal">
+              <input type="radio" name="f-prio" value="Normal" style="accent-color:#4caf50"> <span>🟢 Normal</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg);flex:1;min-width:110px;transition:all .15s" class="prio-opt" data-val="Ridicat">
+              <input type="radio" name="f-prio" value="Ridicat" style="accent-color:#4da6ff"> <span>🔵 Ridicat</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg);flex:1;min-width:110px;transition:all .15s" class="prio-opt" data-val="Urgent">
+              <input type="radio" name="f-prio" value="Urgent" style="accent-color:#ff9800"> <span>🟠 Urgent</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--bg);flex:1;min-width:110px;transition:all .15s" class="prio-opt" data-val="Critic">
+              <input type="radio" name="f-prio" value="Critic" style="accent-color:#ef5350"> <span>🔴 Critic</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="flabel">📍 Locație</label>
+          <input type="text" class="finput" id="f-locatie" placeholder="Oraș, județ...">
+        </div>
+
+        <div class="fg">
+          <label class="flabel">👤 Nume Client</label>
+          <input type="text" class="finput" id="f-nume" placeholder="Prenume Nume">
+        </div>
+
+        <div class="fg full">
+          <label class="flabel">🏢 Beneficiar</label>
+          <input type="text" class="finput" id="f-beneficiar" placeholder="Companie sau persoană fizică">
+        </div>
+
+        <div class="fg full">
+          <label class="flabel">⚡ Descriere Sistem</label>
+          <textarea class="finput" id="f-descriere" placeholder="Tip sistem fotovoltaic, putere instalată, specificații tehnice..."></textarea>
+        </div>
+
+        <div class="fg">
+          <label class="flabel">🔆 Nr. Panouri</label>
+          <input type="number" class="finput" id="f-panouri" placeholder="ex: 20" min="0" step="1">
+        </div>
+
+        <div class="fg">
+          <label class="flabel">🔌 Invertor</label>
+          <input type="text" class="finput" id="f-invertor" placeholder="Marcă + model">
+        </div>
+
+        <div class="fg">
+          <label class="flabel">🏗️ Structură</label>
+          <input type="text" class="finput" id="f-structura" placeholder="Tip structură (acoperiș, sol...)">
+        </div>
+
+        <div class="fg">
+          <label class="flabel">💰 Încasați (RON)</label>
+          <input type="number" class="finput" id="f-incasat" placeholder="0.00" min="0" step="0.01">
+        </div>
+
+        <div class="fg full">
+          <label class="flabel">📝 Observații</label>
+          <textarea class="finput" id="f-obs" placeholder="Notițe suplimentare, condiții speciale..."></textarea>
+        </div>
+
+      </div>
+      <div class="mfoot">
+        <button type="button" class="btn-cancel" onclick="closeOverlay('formOverlay')">Anulează</button>
+        <button type="submit" class="btn-save" id="btnSave">💾 Salvează</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ==================== MOVE MODAL ==================== -->
+<div class="overlay" id="moveOverlay">
+  <div class="modal" style="max-width:440px">
+    <div class="mhead">
+      <span class="mtitle">📦 Mută intrarea în...</span>
+      <button class="mbtn-close" onclick="closeOverlay('moveOverlay')">✕</button>
+    </div>
+    <div class="move-note" id="moveNote">Selectați secțiunea destinație:</div>
+    <div class="mgrid" id="moveGrid"></div>
+  </div>
+</div>
+
+<!-- ==================== SETUP MODAL (first run) ==================== -->
+<div class="overlay open" id="setupOverlay">
+  <div class="modal" style="max-width:500px">
+    <div style="text-align:center; margin-bottom:22px">
+      <div style="font-size:2.5rem; margin-bottom:8px">🔩</div>
+      <div style="font-size:1.3rem; font-weight:900; color:var(--accent); letter-spacing:0.08em">ALPHADRILL</div>
+      <div style="font-size:0.82rem; color:var(--text3); margin-top:4px">Configurare Firebase — o singură dată</div>
+    </div>
+
+    <div style="background:rgba(0,0,0,0.2); border-radius:10px; padding:13px 14px; margin-bottom:18px; font-size:0.8rem; color:var(--text2); line-height:1.7">
+      1. Mergi la <strong style="color:#ff9800">console.firebase.google.com</strong><br>
+      2. Proiect → <strong>Project Settings</strong> (roata dințată) → tab <strong>General</strong><br>
+      3. Scroll jos → <strong>Your apps</strong> → copiezi fiecare valoare de mai jos
+    </div>
+
+    <div style="display:grid; gap:11px">
+      <div class="fg">
+        <label class="flabel">API Key</label>
+        <input class="finput" id="s-apiKey" placeholder="AIzaSy...">
+      </div>
+      <div class="fg">
+        <label class="flabel">Project ID</label>
+        <input class="finput" id="s-projectId" placeholder="alphadrill-xxxxx">
+      </div>
+      <div class="fg">
+        <label class="flabel">App ID</label>
+        <input class="finput" id="s-appId" placeholder="1:123456:web:abc123">
+      </div>
+      <div class="fg">
+        <label class="flabel">Messaging Sender ID</label>
+        <input class="finput" id="s-senderId" placeholder="123456789">
+      </div>
+    </div>
+
+    <div id="setupError" style="display:none; background:rgba(239,83,80,0.12); border:1px solid rgba(239,83,80,0.3); border-radius:8px; padding:10px 12px; font-size:0.8rem; color:#ff8a80; margin-top:10px; line-height:1.6"></div>
+
+    <div style="margin-top:14px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap">
+      <button class="btn-cancel" onclick="skipSetup()">Fără sync (local)</button>
+      <button class="btn-save" id="btnConnect" onclick="saveSetup()">🔗 Conectează Firebase</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TOAST ==================== -->
+<div class="toast" id="toast"></div>
+
+
+<!-- ==================== SCRIPT ==================== -->
+<script>
+/* ============================================================
+   Config-ul Firebase se salvează automat în localStorage
+   după ce utilizatorul îl introduce prima dată.
+   ============================================================ */
+
+// -----------------------------------------------------------
+// SECTIONS METADATA
+// -----------------------------------------------------------
+const SECS = {
+  ofertare:    { label: 'Ofertare',    icon: '📋' },
+  planificare: { label: 'Planificare', icon: '📅' },
+  pending:     { label: 'Pending',     icon: '⏳' },
+  finalizat:   { label: 'Finalizat',   icon: '✅' },
+  refuzat:     { label: 'Refuzat',     icon: '❌' },
+};
+const COL = 'crm_proiecte';
+
+// -----------------------------------------------------------
+// STATE
+// -----------------------------------------------------------
+let entries    = [];
+let editingId  = null;
+let movingId   = null;
+let curTab     = 'ofertare';
+let db         = null;
+let firebase_ok = false;
+
+// Active priority filters per section  (Set of strings)
+const activeFilters = {
+  ofertare: new Set(), planificare: new Set(),
+  pending:  new Set(), finalizat:   new Set(), refuzat: new Set()
+};
+
+// Priority sort order
+const PRIO_ORDER = { 'Critic': 0, 'Urgent': 1, 'Ridicat': 2, 'Normal': 3, '': 4 };
+
+// -----------------------------------------------------------
+// INIT
+// -----------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  // Pre-fill today
+  document.getElementById('f-data').value = todayISO();
+
+  // Default priority = Normal
+  const defaultPrio = document.querySelector('input[name="f-prio"][value="Normal"]');
+  if (defaultPrio) defaultPrio.checked = true;
+
+  // Radio label highlight on change
+  document.getElementById('prioGroup').addEventListener('change', highlightPrioLabels);
+  highlightPrioLabels();
+
+  // Verifică dacă config Firebase e deja salvat în localStorage
+  const saved = localStorage.getItem('alphadrill_firebase_config');
+  if (saved) {
+    // Config găsit — ascunde setup și conectează direct
+    closeSetup();
+    try {
+      const cfg = JSON.parse(saved);
+      initFirebase(cfg);
+    } catch(e) {
+      fallbackLocal();
+    }
+  }
+  // Dacă nu e salvat, setupOverlay rămâne vizibil (e open din HTML)
+});
+
+// -----------------------------------------------------------
+// SETUP MODAL LOGIC
+// -----------------------------------------------------------
+function closeSetup() {
+  // Forțăm închiderea directă cu style, nu doar class
+  const el = document.getElementById('setupOverlay');
+  el.style.display = 'none';
+  el.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function saveSetup() {
+  const apiKey    = document.getElementById('s-apiKey').value.trim();
+  const projectId = document.getElementById('s-projectId').value.trim();
+  const appId     = document.getElementById('s-appId').value.trim();
+  const senderId  = document.getElementById('s-senderId').value.trim();
+
+  if (!apiKey || !projectId) {
+    toast('⚠️ API Key și Project ID sunt obligatorii!', 'err');
+    return;
+  }
+
+  const cfg = {
+    apiKey,
+    authDomain:        `${projectId}.firebaseapp.com`,
+    projectId,
+    storageBucket:     `${projectId}.appspot.com`,
+    messagingSenderId: senderId,
+    appId
+  };
+
+  // Salvăm și închidem popup-ul IMEDIAT
+  localStorage.setItem('alphadrill_firebase_config', JSON.stringify(cfg));
+  closeSetup();
+
+  // Inițializăm Firebase după ce popup-ul e deja închis
+  setTimeout(() => initFirebase(cfg), 100);
+}
+
+function skipSetup() {
+  localStorage.setItem('alphadrill_firebase_config', JSON.stringify({ skip: true }));
+  closeSetup();
+  document.getElementById('firebaseBanner').style.display = 'block';
+  fallbackLocal();
+}
+
+function initFirebase(cfg) {
+  if (cfg.skip) { fallbackLocal(); return; }
+  try {
+    // Evităm eroarea "app already initialized"
+    let app;
+    if (firebase.apps.length === 0) {
+      app = firebase.initializeApp(cfg);
+    } else {
+      app = firebase.apps[0];
+    }
+    db = firebase.firestore();
+    firebase_ok = true;
+    startFirebaseSync();
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    toast('❌ Eroare Firebase: ' + e.message, 'err');
+    fallbackLocal();
+  }
+}
+
+function resetSetup() {
+  if (!confirm('Resetezi configurarea Firebase? Va trebui să introduci din nou datele.')) return;
+  localStorage.removeItem('alphadrill_firebase_config');
+  location.reload();
+}
+
+// -----------------------------------------------------------
+// FIREBASE
+// -----------------------------------------------------------
+function startFirebaseSync() {
+  setSyncUI('syncing', 'Conectare...');
+  db.collection(COL)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(
+      snap => {
+        entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAll();
+        setSyncUI('online', 'Sincronizat');
+      },
+      err => {
+        console.error(err);
+        setSyncUI('offline', 'Offline');
+        fallbackLocal();
+      }
+    );
+}
+
+// -----------------------------------------------------------
+// LOCALSTORAGE FALLBACK
+// -----------------------------------------------------------
+function fallbackLocal() {
+  const raw = localStorage.getItem('crm_v1');
+  entries = raw ? JSON.parse(raw) : [];
+  renderAll();
+  if (!firebase_ok) setSyncUI('local', 'Local');
+}
+function saveLocal() {
+  localStorage.setItem('crm_v1', JSON.stringify(entries));
+}
+
+// -----------------------------------------------------------
+// SYNC STATUS UI
+// -----------------------------------------------------------
+function setSyncUI(type, label) {
+  const dot   = document.getElementById('syncDot');
+  const lbl   = document.getElementById('syncLabel');
+  dot.className = 'sync-dot ' + type;
+  lbl.textContent = label;
+}
+
+// -----------------------------------------------------------
+// CRUD
+// -----------------------------------------------------------
+async function saveEntry(e) {
+  e.preventDefault();
+
+  const prioEl = document.querySelector('input[name="f-prio"]:checked');
+  const payload = {
+    data:       document.getElementById('f-data').value,
+    status:     document.getElementById('f-status').value,
+    prio:       prioEl ? prioEl.value : 'Normal',
+    locatie:    document.getElementById('f-locatie').value.trim(),
+    nume:       document.getElementById('f-nume').value.trim(),
+    beneficiar: document.getElementById('f-beneficiar').value.trim(),
+    descriere:  document.getElementById('f-descriere').value.trim(),
+    panouri:    document.getElementById('f-panouri').value,
+    invertor:   document.getElementById('f-invertor').value.trim(),
+    structura:  document.getElementById('f-structura').value.trim(),
+    incasat:    document.getElementById('f-incasat').value,
+    obs:        document.getElementById('f-obs').value.trim(),
+  };
+
+  if (!payload.nume && !payload.beneficiar) {
+    toast('⚠️ Completați Numele sau Beneficiarul!', 'err'); return;
+  }
+
+  // Keep existing section when editing
+  if (editingId) {
+    const ex = byId(editingId);
+    payload.section = ex?.section || 'ofertare';
+  } else {
+    payload.section = 'ofertare';
+  }
+
+  setSyncUI('syncing', 'Salvare...');
+
+  if (firebase_ok) {
+    try {
+      if (editingId) {
+        await db.collection(COL).doc(editingId).update(payload);
+      } else {
+        payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection(COL).add(payload);
+      }
+      toast(editingId ? '✏️ Actualizat cu succes!' : '✅ Ofertă adăugată!', 'ok');
+    } catch(err) {
+      toast('❌ Eroare Firebase: ' + err.message, 'err');
+      setSyncUI('offline', 'Eroare');
+      return;
+    }
+  } else {
+    if (editingId) {
+      const idx = entries.findIndex(x => x.id === editingId);
+      if (idx !== -1) entries[idx] = { ...entries[idx], ...payload };
+    } else {
+      payload.id = 'L_' + Date.now() + '_' + rnd();
+      payload.createdAt = new Date().toISOString();
+      entries.unshift(payload);
+    }
+    saveLocal();
+    renderAll();
+    toast(editingId ? '✏️ Actualizat!' : '✅ Ofertă adăugată!', 'ok');
+    setSyncUI('local', 'Local');
+  }
+
+  closeOverlay('formOverlay');
+  editingId = null;
+}
+
+async function deleteEntry(id) {
+  if (!confirm('Ești sigur că vrei să ștergi această intrare?')) return;
+
+  if (firebase_ok) {
+    try {
+      await db.collection(COL).doc(id).delete();
+      toast('🗑️ Intrare ștearsă!', 'ok');
+    } catch(e) {
+      toast('❌ Eroare la ștergere!', 'err');
+    }
+  } else {
+    entries = entries.filter(x => x.id !== id);
+    saveLocal();
+    renderAll();
+    toast('🗑️ Șters!', 'ok');
+  }
+}
+
+async function doMove(id, targetSec) {
+  if (firebase_ok) {
+    try {
+      await db.collection(COL).doc(id).update({ section: targetSec });
+      toast(`📦 Mutat în ${SECS[targetSec].label}!`, 'ok');
+    } catch(e) {
+      toast('❌ Eroare la mutare!', 'err');
+    }
+  } else {
+    const idx = entries.findIndex(x => x.id === id);
+    if (idx !== -1) entries[idx].section = targetSec;
+    saveLocal();
+    renderAll();
+    toast(`📦 Mutat în ${SECS[targetSec].label}!`, 'ok');
+  }
+  closeOverlay('moveOverlay');
+  movingId = null;
+}
+
+// -----------------------------------------------------------
+// RENDER
+// -----------------------------------------------------------
+function renderAll() {
+  Object.keys(SECS).forEach(s => {
+    // All entries for this section
+    let list = entries.filter(e => e.section === s);
+    document.getElementById('cnt-' + s).textContent = list.length;
+
+    const cnt = document.getElementById('sec-count-' + s);
+
+    // Apply priority filter
+    const af = activeFilters[s];
+    if (af.size > 0) {
+      list = list.filter(e => af.has((e.prio || 'Normal').toLowerCase()));
+    }
+
+    // Apply text search
+    const searchId = s === 'ofertare' ? 'searchInput' : 'searchInput-' + s;
+    const searchEl = document.getElementById(searchId);
+    const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+    if (q) {
+      list = list.filter(e => {
+        const hay = [e.nume, e.beneficiar, e.locatie, e.invertor, e.descriere, e.obs]
+          .join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    // Sort: Critic → Urgent → Ridicat → Normal, then by date desc
+    list.sort((a, b) => {
+      const pa = PRIO_ORDER[a.prio || ''] ?? 4;
+      const pb = PRIO_ORDER[b.prio || ''] ?? 4;
+      if (pa !== pb) return pa - pb;
+      return (b.data || '').localeCompare(a.data || '');
+    });
+
+    if (cnt) cnt.textContent = list.length + ' înregistrări' + (af.size>0||q ? ' (filtrate)' : '');
+
+    const el = document.getElementById('cards-' + s);
+    if (!list.length) {
+      el.innerHTML = `<div class="empty">
+        <span class="empty-icon">${SECS[s].icon}</span>
+        <div class="empty-msg">${af.size>0||q ? 'Niciun rezultat pentru filtrele aplicate' : 'Nicio intrare în ' + SECS[s].label}</div>
+      </div>`;
+    } else {
+      el.innerHTML = list.map(renderCard).join('');
+    }
+  });
+}
+
+function statusClass(st) {
+  const s = (st || '').toLowerCase();
+  if (s.includes('nou'))        return 's-nou';
+  if (s.includes('contact'))    return 's-contactat';
+  if (s.includes('negoc'))      return 's-negociere';
+  if (s.includes('confirm'))    return 's-confirmat';
+  if (s.includes('așteptare') || s.includes('asteptare')) return 's-asteptare';
+  return 's-default';
+}
+
+function prioClass(p) {
+  const v = (p || 'normal').toLowerCase();
+  if (v === 'critic')  return 'pf-critic';
+  if (v === 'urgent')  return 'pf-urgent';
+  if (v === 'ridicat') return 'pf-ridicat';
+  return 'pf-normal';
+}
+function prioIcon(p) {
+  const v = (p || '').toLowerCase();
+  if (v === 'critic')  return '🔴';
+  if (v === 'urgent')  return '🟠';
+  if (v === 'ridicat') return '🔵';
+  return '🟢';
+}
+function cardPrioClass(p) {
+  const v = (p || '').toLowerCase();
+  if (v === 'critic') return 'prio-critic';
+  if (v === 'urgent') return 'prio-urgent';
+  return '';
+}
+
+function renderCard(e) {
+  const id = e.id;
+  const prio = e.prio || 'Normal';
+  return `
+<div class="card ${cardPrioClass(prio)}">
+  <div class="card-top">
+    <div class="card-left">
+      <div class="card-name">${x(e.nume) || '<span style="opacity:.5">Fără nume</span>'}</div>
+      ${e.beneficiar ? `<div class="card-bene">🏢 ${x(e.beneficiar)}</div>` : ''}
+    </div>
+    <div class="card-right">
+      <span class="pflag ${prioClass(prio)}">${prioIcon(prio)} ${x(prio)}</span>
+      ${e.data ? `<div class="card-date" style="margin-top:5px">${fmtDate(e.data)}</div>` : ''}
+      ${e.status ? `<span class="sbadge ${statusClass(e.status)}">${x(e.status)}</span>` : ''}
+    </div>
+  </div>
+
+  <div class="card-grid">
+    ${e.locatie  ? `<div class="cfield"><div class="cfield-lbl">Locație</div><div class="cfield-val">📍 ${x(e.locatie)}</div></div>` : ''}
+    ${e.panouri  ? `<div class="cfield"><div class="cfield-lbl">Nr. Panouri</div><div class="cfield-val">🔆 ${x(e.panouri)} buc</div></div>` : ''}
+    ${e.invertor ? `<div class="cfield"><div class="cfield-lbl">Invertor</div><div class="cfield-val">🔌 ${x(e.invertor)}</div></div>` : ''}
+    ${e.structura? `<div class="cfield"><div class="cfield-lbl">Structură</div><div class="cfield-val">🏗️ ${x(e.structura)}</div></div>` : ''}
+    ${e.incasat  ? `<div class="cfield"><div class="cfield-lbl">Încasați</div><div class="cfield-val money">💰 ${fmtMoney(e.incasat)} RON</div></div>` : ''}
+  </div>
+
+  ${e.descriere ? `<div class="card-desc">⚡ ${x(e.descriere)}</div>` : ''}
+  ${e.obs       ? `<div class="card-obs">💬 ${x(e.obs)}</div>` : ''}
+
+  <div class="card-actions">
+    <button class="bsm bsm-edit" onclick="openEdit('${id}')">✏️ Editează</button>
+    <button class="bsm bsm-move" onclick="openMove('${id}')">📦 Mută</button>
+    <button class="bsm bsm-del"  onclick="deleteEntry('${id}')">🗑️ Șterge</button>
+  </div>
+</div>`;
+}
+
+// -----------------------------------------------------------
+// MODALS
+// -----------------------------------------------------------
+function openAdd() {
+  editingId = null;
+  document.getElementById('mTitle').textContent = 'Adaugă Ofertă Nouă';
+  document.getElementById('btnSave').textContent = '💾 Salvează';
+  document.getElementById('entryForm').reset();
+  document.getElementById('f-data').value = todayISO();
+  // Default priority
+  const normalR = document.querySelector('input[name="f-prio"][value="Normal"]');
+  if (normalR) { normalR.checked = true; highlightPrioLabels(); }
+  openOverlay('formOverlay');
+}
+
+function openEdit(id) {
+  const e = byId(id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('mTitle').textContent = 'Editează Intrarea';
+  document.getElementById('btnSave').textContent = '💾 Actualizează';
+
+  document.getElementById('f-data').value      = e.data || '';
+  document.getElementById('f-status').value    = e.status || 'Nou';
+  document.getElementById('f-locatie').value   = e.locatie || '';
+  document.getElementById('f-nume').value      = e.nume || '';
+  document.getElementById('f-beneficiar').value= e.beneficiar || '';
+  document.getElementById('f-descriere').value = e.descriere || '';
+  document.getElementById('f-panouri').value   = e.panouri || '';
+  document.getElementById('f-invertor').value  = e.invertor || '';
+  document.getElementById('f-structura').value = e.structura || '';
+  document.getElementById('f-incasat').value   = e.incasat || '';
+  document.getElementById('f-obs').value       = e.obs || '';
+  // Set priority radio
+  const prioVal = e.prio || 'Normal';
+  const prioR = document.querySelector(`input[name="f-prio"][value="${prioVal}"]`);
+  if (prioR) { prioR.checked = true; highlightPrioLabels(); }
+
+  openOverlay('formOverlay');
+}
+
+function openMove(id) {
+  movingId = id;
+  const e = byId(id);
+  if (!e) return;
+
+  const note = `Mutați <strong>${x(e.nume || e.beneficiar || 'intrarea')}</strong> din
+    <em>${SECS[e.section].label}</em> în:`;
+  document.getElementById('moveNote').innerHTML = note;
+
+  const others = Object.keys(SECS).filter(s => s !== e.section);
+  document.getElementById('moveGrid').innerHTML = others.map(s => `
+    <button class="mbtn m-${s}" onclick="doMove('${id}','${s}')">
+      ${SECS[s].icon} ${SECS[s].label.toUpperCase()}
+    </button>
+  `).join('');
+
+  openOverlay('moveOverlay');
+}
+
+function openOverlay(id)  {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeOverlay(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', ev => { if (ev.target === o) closeOverlay(o.id); });
+});
+
+// Close on Escape
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') {
+    ['formOverlay','moveOverlay'].forEach(closeOverlay);
+  }
+});
+
+// -----------------------------------------------------------
+// FILTER LOGIC
+// -----------------------------------------------------------
+function toggleFilter(prio, sec) {
+  const s = sec || 'ofertare';
+  const set = activeFilters[s];
+  const p = prio.toLowerCase();
+  if (set.has(p)) set.delete(p); else set.add(p);
+
+  // Update chip visual
+  const suffix = s === 'ofertare' ? '' : '-' + s;
+  const chip = document.getElementById('fc-' + prio + suffix);
+  if (chip) chip.classList.toggle('active', set.has(p));
+
+  // Show/hide clear button
+  const clearBtn = document.getElementById('fc-clear' + (s === 'ofertare' ? '' : '-' + s));
+  const searchId = s === 'ofertare' ? 'searchInput' : 'searchInput-' + s;
+  const q = (document.getElementById(searchId)?.value || '').trim();
+  if (clearBtn) clearBtn.style.display = (set.size > 0 || q) ? '' : 'none';
+
+  renderAll();
+}
+
+function clearFilters(sec) {
+  const s = sec || 'ofertare';
+  activeFilters[s].clear();
+  const suffix = s === 'ofertare' ? '' : '-' + s;
+  ['critic','urgent','ridicat','normal'].forEach(p => {
+    const chip = document.getElementById('fc-' + p + suffix);
+    if (chip) chip.classList.remove('active');
+  });
+  const searchId = s === 'ofertare' ? 'searchInput' : 'searchInput-' + s;
+  const searchEl = document.getElementById(searchId);
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('fc-clear' + (s === 'ofertare' ? '' : '-' + s));
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderAll();
+}
+
+// Show clear button when typing in search
+document.addEventListener('input', ev => {
+  if (!ev.target.id?.startsWith('searchInput')) return;
+  const s = ev.target.id === 'searchInput' ? 'ofertare' : ev.target.id.replace('searchInput-','');
+  const suffix = s === 'ofertare' ? '' : '-' + s;
+  const clearBtn = document.getElementById('fc-clear' + (s === 'ofertare' ? '' : '-' + s));
+  if (clearBtn) clearBtn.style.display = (activeFilters[s].size > 0 || ev.target.value.trim()) ? '' : 'none';
+});
+
+// Highlight selected priority label in form
+function highlightPrioLabels() {
+  document.querySelectorAll('.prio-opt').forEach(lbl => {
+    const inp = lbl.querySelector('input');
+    const v = (lbl.dataset.val || '').toLowerCase();
+    lbl.style.borderColor = inp.checked
+      ? (v==='critic'?'#ef5350':v==='urgent'?'#ff9800':v==='ridicat'?'#4da6ff':'#4caf50')
+      : 'var(--border)';
+    lbl.style.background = inp.checked ? 'var(--bg3)' : 'var(--bg)';
+  });
+}
+
+// -----------------------------------------------------------
+// TABS
+// -----------------------------------------------------------
+function goTab(s) {
+  curTab = s;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.s === s));
+  document.querySelectorAll('.section').forEach(el => el.classList.toggle('active', el.id === 'sec-' + s));
+}
+
+// -----------------------------------------------------------
+// HELPERS
+// -----------------------------------------------------------
+function byId(id)  { return entries.find(e => e.id === id); }
+function todayISO(){ return new Date().toISOString().split('T')[0]; }
+function rnd()     { return Math.random().toString(36).substr(2,6); }
+
+function x(str) {  // XSS-safe escape
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(d) {
+  try { const [y,m,dd] = d.split('-'); return `${dd}.${m}.${y}`; }
+  catch(e) { return d; }
+}
+
+function fmtMoney(v) {
+  if (!v) return '0';
+  return Number(v).toLocaleString('ro-RO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+let _toastTimer;
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

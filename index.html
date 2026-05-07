@@ -718,6 +718,7 @@ textarea.finput { resize: vertical; min-height: 75px; }
     </div>
   </div>
   <div style="display:flex; align-items:center; gap:8px">
+    <button onclick="exportExcel()" title="Export Excel" style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#82d985;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:0.72rem;font-weight:800">📥 Export</button>
     <div class="sync-pill">
       <div class="sync-dot local" id="syncDot"></div>
       <span id="syncLabel">Local</span>
@@ -1601,6 +1602,54 @@ function fmtDate(d) {
 function fmtMoney(v) {
   if (!v) return '0';
   return Number(v).toLocaleString('ro-RO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+// -----------------------------------------------------------
+// EXPORT EXCEL (CSV)
+// -----------------------------------------------------------
+function exportExcel() {
+  if (!entries.length) {
+    toast('⚠️ Nu există date de exportat!', 'err');
+    return;
+  }
+
+  const headers = [
+    'Secțiune', 'Data', 'Urgență', 'Status', 'Nume', 'Beneficiar',
+    'Locație', 'Nr. Panouri', 'Invertor', 'Structură',
+    'Încasați (RON)', 'Descriere Sistem', 'Observații'
+  ];
+
+  const rows = entries.map(e => [
+    SECS[e.section]?.label || e.section,
+    e.data || '',
+    e.prio || 'Normal',
+    e.status || '',
+    e.nume || '',
+    e.beneficiar || '',
+    e.locatie || '',
+    e.panouri || '',
+    e.invertor || '',
+    e.structura || '',
+    e.incasat || '',
+    e.descriere || '',
+    e.obs || ''
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  // Add BOM for Excel to recognize Romanian characters
+  const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  link.href     = url;
+  link.download = `ALPHADRILL_backup_${date}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+
+  toast(`📥 Exportat ${entries.length} intrări!`, 'ok');
 }
 
 let _toastTimer;

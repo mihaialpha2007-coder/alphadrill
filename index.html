@@ -149,11 +149,15 @@ html, body {
 }
 .tab.active .badge { background: var(--accent2); color: #fff; }
 /* Individual tab badge colours */
-[data-s="ofertare"]    .badge { border: 1px solid #1a5a99; }
-[data-s="planificare"] .badge { border: 1px solid #6a1fb5; }
-[data-s="pending"]     .badge { border: 1px solid #b34700; }
-[data-s="finalizat"]   .badge { border: 1px solid #2a6a2a; }
-[data-s="refuzat"]     .badge { border: 1px solid #8a1a1a; }
+[data-s="ofertare"]     .badge { border: 1px solid #1a5a99; }
+[data-s="planificare"]  .badge { border: 1px solid #6a1fb5; }
+[data-s="pending"]      .badge { border: 1px solid #b34700; }
+[data-s="lucrarifacut"] .badge { border: 1px solid #006064; }
+[data-s="interventii"]  .badge { border: 1px solid #4a148c; }
+[data-s="mentenanta"]   .badge { border: 1px solid #1b5e20; }
+[data-s="deincasat"]    .badge { border: 1px solid #e65100; }
+[data-s="finalizat"]    .badge { border: 1px solid #2a6a2a; }
+[data-s="refuzat"]      .badge { border: 1px solid #8a1a1a; }
 
 /* ============================
    CONTENT
@@ -234,7 +238,11 @@ html, body {
 .section#sec-ofertare    .card::before { background: #1e6fcf; }
 .section#sec-planificare .card::before { background: #7b1fa2; }
 .section#sec-pending     .card::before { background: #e65100; }
-.section#sec-finalizat   .card::before { background: #2e7d32; }
+.section#sec-lucrarifacut .card::before { background: #00838f; }
+.section#sec-interventii  .card::before { background: #6a1b9a; }
+.section#sec-mentenanta   .card::before { background: #2e7d32; }
+.section#sec-deincasat    .card::before { background: #f57c00; }
+.section#sec-finalizat   .card::before { background: #388e3c; }
 .section#sec-refuzat     .card::before { background: #c62828; }
 .card:hover {
   border-color: var(--border2);
@@ -739,6 +747,18 @@ textarea.finput { resize: vertical; min-height: 75px; }
     <div class="tab" data-s="pending"    onclick="goTab('pending')">
       ⏳ PENDING     <span class="badge" id="cnt-pending">0</span>
     </div>
+    <div class="tab" data-s="lucrarifacut" onclick="goTab('lucrarifacut')">
+      🔧 LUCRĂRI DE FĂCUT <span class="badge" id="cnt-lucrarifacut">0</span>
+    </div>
+    <div class="tab" data-s="interventii" onclick="goTab('interventii')">
+      ⚡ INTERVENȚII <span class="badge" id="cnt-interventii">0</span>
+    </div>
+    <div class="tab" data-s="mentenanta" onclick="goTab('mentenanta')">
+      🛠️ MENTENANȚĂ  <span class="badge" id="cnt-mentenanta">0</span>
+    </div>
+    <div class="tab" data-s="deincasat" onclick="goTab('deincasat')">
+      💰 DE ÎNCASAT  <span class="badge" id="cnt-deincasat">0</span>
+    </div>
     <div class="tab" data-s="finalizat"  onclick="goTab('finalizat')">
       ✅ FINALIZAT   <span class="badge" id="cnt-finalizat">0</span>
     </div>
@@ -819,6 +839,86 @@ textarea.finput { resize: vertical; min-height: 75px; }
       <button class="fchip" onclick="clearFilters('pending')" id="fc-clear-pending" style="display:none">✕ Resetează</button>
     </div>
     <div class="cards-grid" id="cards-pending"></div>
+  </div>
+
+  <!-- LUCRARI DE FACUT -->
+  <div class="section" id="sec-lucrarifacut">
+    <div class="sec-header">
+      <div class="sec-title">🔧 Lucrări de Făcut</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-lucrarifacut" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','lucrarifacut')"  id="fc-critic-lucrarifacut">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','lucrarifacut')"  id="fc-urgent-lucrarifacut">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','lucrarifacut')" id="fc-ridicat-lucrarifacut">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','lucrarifacut')"  id="fc-normal-lucrarifacut">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('lucrarifacut')" id="fc-clear-lucrarifacut" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-lucrarifacut"></div>
+  </div>
+
+  <!-- INTERVENTII -->
+  <div class="section" id="sec-interventii">
+    <div class="sec-header">
+      <div class="sec-title">⚡ Intervenții</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-interventii" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','interventii')"  id="fc-critic-interventii">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','interventii')"  id="fc-urgent-interventii">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','interventii')" id="fc-ridicat-interventii">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','interventii')"  id="fc-normal-interventii">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('interventii')" id="fc-clear-interventii" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-interventii"></div>
+  </div>
+
+  <!-- MENTENANTA -->
+  <div class="section" id="sec-mentenanta">
+    <div class="sec-header">
+      <div class="sec-title">🛠️ Mentenanță</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-mentenanta" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','mentenanta')"  id="fc-critic-mentenanta">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','mentenanta')"  id="fc-urgent-mentenanta">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','mentenanta')" id="fc-ridicat-mentenanta">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','mentenanta')"  id="fc-normal-mentenanta">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('mentenanta')" id="fc-clear-mentenanta" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-mentenanta"></div>
+  </div>
+
+  <!-- DE INCASAT -->
+  <div class="section" id="sec-deincasat">
+    <div class="sec-header">
+      <div class="sec-title">💰 De Încasat</div>
+    </div>
+    <div class="filter-bar">
+      <span class="filter-label">🔍 Caută:</span>
+      <input class="fsearch" type="text" id="searchInput-deincasat" placeholder="Caută nume, locație..." oninput="renderAll()">
+      <div class="fsep"></div>
+      <span class="filter-label">Urgență:</span>
+      <button class="fchip fc-critic"  onclick="toggleFilter('critic','deincasat')"  id="fc-critic-deincasat">🔴 Critic</button>
+      <button class="fchip fc-urgent"  onclick="toggleFilter('urgent','deincasat')"  id="fc-urgent-deincasat">🟠 Urgent</button>
+      <button class="fchip fc-ridicat" onclick="toggleFilter('ridicat','deincasat')" id="fc-ridicat-deincasat">🔵 Ridicat</button>
+      <button class="fchip fc-normal"  onclick="toggleFilter('normal','deincasat')"  id="fc-normal-deincasat">🟢 Normal</button>
+      <div class="fsep"></div>
+      <button class="fchip" onclick="clearFilters('deincasat')" id="fc-clear-deincasat" style="display:none">✕ Resetează</button>
+    </div>
+    <div class="cards-grid" id="cards-deincasat"></div>
   </div>
 
   <!-- FINALIZAT -->
@@ -1033,11 +1133,15 @@ textarea.finput { resize: vertical; min-height: 75px; }
 // SECTIONS METADATA
 // -----------------------------------------------------------
 const SECS = {
-  ofertare:    { label: 'Ofertare',    icon: '📋' },
-  planificare: { label: 'Planificare', icon: '📅' },
-  pending:     { label: 'Pending',     icon: '⏳' },
-  finalizat:   { label: 'Finalizat',   icon: '✅' },
-  refuzat:     { label: 'Refuzat',     icon: '❌' },
+  ofertare:    { label: 'Ofertare',        icon: '📋' },
+  planificare: { label: 'Planificare',     icon: '📅' },
+  pending:     { label: 'Pending',         icon: '⏳' },
+  lucrarifacut:{ label: 'Lucrări de Făcut',icon: '🔧' },
+  interventii: { label: 'Intervenții',     icon: '⚡' },
+  mentenanta:  { label: 'Mentenanță',      icon: '🛠️' },
+  deincasat:   { label: 'De Încasat',      icon: '💰' },
+  finalizat:   { label: 'Finalizat',       icon: '✅' },
+  refuzat:     { label: 'Refuzat',         icon: '❌' },
 };
 const COL = 'crm_proiecte';
 
@@ -1053,8 +1157,11 @@ let firebase_ok = false;
 
 // Active priority filters per section  (Set of strings)
 const activeFilters = {
-  ofertare: new Set(), planificare: new Set(),
-  pending:  new Set(), finalizat:   new Set(), refuzat: new Set()
+  ofertare:    new Set(), planificare:  new Set(),
+  pending:     new Set(), lucrarifacut: new Set(),
+  interventii: new Set(), mentenanta:  new Set(),
+  deincasat:   new Set(), finalizat:   new Set(),
+  refuzat:     new Set()
 };
 
 // Priority sort order
